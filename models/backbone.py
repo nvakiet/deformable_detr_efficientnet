@@ -133,7 +133,7 @@ class BackboneEfficientNetV2(nn.Module):
                 parameter.requires_grad_(False)
 
         # features = efficentnet_model.features
-        features = IntermediateLayerGetter(
+        self.body = IntermediateLayerGetter(
             efficentnet_model, return_layers={"features": "0"})
         # self.body = torch.nn.Sequential(*(list(features.children())[:-1]))
 
