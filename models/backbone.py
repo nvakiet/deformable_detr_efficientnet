@@ -118,6 +118,10 @@ class BackboneEfficientNetV2(nn.Module):
     def __init__(self, train_backbone):
         super().__init__()
 
+        # happy code
+        self.strides = [32]
+        self.num_channels = [256]
+
         weights = EfficientNet_V2_S_Weights.verify("DEFAULT")
         inverted_residual_setting, last_channel = _efficientnet_conf(
             "efficientnet_v2_s")
