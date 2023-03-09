@@ -1,0 +1,4 @@
+*.txt
+__pycache__
+!my_requirements.txt
+/deformable_detr_weights
