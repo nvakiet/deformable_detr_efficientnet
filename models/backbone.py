@@ -132,7 +132,9 @@ class BackboneEfficientNetV2(nn.Module):
             if not train_backbone:
                 parameter.requires_grad_(False)
 
-        features = efficentnet_model.features
+        # features = efficentnet_model.features
+        features = IntermediateLayerGetter(
+            efficentnet_model, return_layers={"features": "0"})
         self.body = torch.nn.Sequential(*(list(features.children())[:-1]))
 
     def forward(self, tensor_list: NestedTensor):
