@@ -120,7 +120,7 @@ class BackboneEfficientNetV2(nn.Module):
 
         # happy code
         self.strides = [32]
-        self.num_channels = [256]
+        self.num_channels = [1280]
 
         weights = EfficientNet_V2_S_Weights.verify("DEFAULT")
         inverted_residual_setting, last_channel = _efficientnet_conf(
@@ -135,7 +135,7 @@ class BackboneEfficientNetV2(nn.Module):
         # features = efficentnet_model.features
         features = IntermediateLayerGetter(
             efficentnet_model, return_layers={"features": "0"})
-        self.body = torch.nn.Sequential(*(list(features.children())[:-1]))
+        # self.body = torch.nn.Sequential(*(list(features.children())[:-1]))
 
     def forward(self, tensor_list: NestedTensor):
         xs = self.body(tensor_list.tensors)
