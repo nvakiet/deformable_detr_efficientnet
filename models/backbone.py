@@ -149,7 +149,7 @@ class BackboneEfficientNetV2(nn.Module):
         return out
 
 
-class BackboneMobileNetV3(nn.module):
+class BackboneMobileNetV3(nn.Module):
     def __init__(self, train_backbone):
         super().__init__()
 
