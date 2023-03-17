@@ -3,3 +3,4 @@ python -u main.py \
     --output_dir "exps/effi_v2s_deformable_detr" \
     --backbone "efficientnet" \
     --batch_size 2
+efficientnet

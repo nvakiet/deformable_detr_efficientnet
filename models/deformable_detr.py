@@ -20,7 +20,7 @@ from util.misc import (NestedTensor, nested_tensor_from_tensor_list,
                        accuracy, get_world_size, interpolate,
                        is_dist_avail_and_initialized, inverse_sigmoid)
 
-from .backbone import build_backbone, build_efficientnet_backbone
+from .backbone import build_backbone, build_efficientnet_backbone, build_mobilenet_backbone
 from .matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
@@ -480,6 +480,8 @@ def build(args):
 
     if "efficientnet" in args.backbone:
         backbone = build_efficientnet_backbone(args)
+    if "mobilenet" in args.backbone:
+        backbone = build_mobilenet_backbone(args)
     else:
         backbone = build_backbone(args)
 

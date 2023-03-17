@@ -18,7 +18,7 @@ import torchvision
 from torch import nn
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.models.efficientnet import _efficientnet_conf, _efficientnet, EfficientNet_V2_S_Weights
-
+from torchvision.models.mobilenet import mobilenet_v3_large
 from typing import Dict, List
 
 from util.misc import NestedTensor, is_main_process
@@ -149,6 +149,34 @@ class BackboneEfficientNetV2(nn.Module):
         return out
 
 
+class BackboneMobileNetV3(nn.module):
+    def __init__(self, train_backbone):
+        super().__init__()
+
+        # happy code
+        self.strides = [32]
+        self.num_channels = [960]
+
+        mobilenet_model = mobilenet_v3_large(weights="DEFAULT")
+
+        for name, parameter in mobilenet_model.named_parameters():
+            if not train_backbone:
+                parameter.requires_grad_(False)
+        body = IntermediateLayerGetter(
+            mobilenet_model, return_layers={"features": "0"})
+
+    def forward(self, tensor_list: NestedTensor):
+        xs = self.body(tensor_list.tensors)
+        out: Dict[str, NestedTensor] = {}
+        for name, x in xs.items():
+            m = tensor_list.mask
+            assert m is not None
+            mask = F.interpolate(
+                m[None].float(), size=x.shape[-2:]).to(torch.bool)[0]
+            out[name] = NestedTensor(x, mask)
+        return out
+
+
 class Joiner(nn.Sequential):
     def __init__(self, backbone, position_embedding):
         super().__init__(backbone, position_embedding)
@@ -183,5 +211,13 @@ def build_efficientnet_backbone(args):
     position_embedding = build_position_encoding(args)
     train_backbone = args.lr_backbone > 0
     backbone = BackboneEfficientNetV2(train_backbone)
+    model = Joiner(backbone, position_embedding)
+    return model
+
+
+def build_mobilenet_backbone(args):
+    position_embedding = build_position_encoding(args)
+    train_backbone = args.lr_backbone > 0
+    backbone = BackboneMobileNetV3(train_backbone)
     model = Joiner(backbone, position_embedding)
     return model
