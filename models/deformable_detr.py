@@ -480,7 +480,7 @@ def build(args):
 
     if "efficientnet" in args.backbone:
         backbone = build_efficientnet_backbone(args)
-    if "mobilenet" in args.backbone:
+    elif "mobilenet" in args.backbone:
         backbone = build_mobilenet_backbone(args)
     else:
         backbone = build_backbone(args)

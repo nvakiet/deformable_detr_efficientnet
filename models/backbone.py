@@ -135,7 +135,6 @@ class BackboneEfficientNetV2(nn.Module):
         # features = efficentnet_model.features
         self.body = IntermediateLayerGetter(
             efficentnet_model, return_layers={"features": "0"})
-        # self.body = torch.nn.Sequential(*(list(features.children())[:-1]))
 
     def forward(self, tensor_list: NestedTensor):
         xs = self.body(tensor_list.tensors)
@@ -162,7 +161,7 @@ class BackboneMobileNetV3(nn.Module):
         for name, parameter in mobilenet_model.named_parameters():
             if not train_backbone:
                 parameter.requires_grad_(False)
-        body = IntermediateLayerGetter(
+        self.body = IntermediateLayerGetter(
             mobilenet_model, return_layers={"features": "0"})
 
     def forward(self, tensor_list: NestedTensor):

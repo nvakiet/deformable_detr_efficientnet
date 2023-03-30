@@ -138,19 +138,26 @@ def main(args):
     if args.frozen_weights is not None:
         assert args.masks, "Frozen training is meant for segmentation only"
     print(args)
-
     device = torch.device(args.device)
-
+    print("You are using device:", device)
     # fix the seed for reproducibility
     seed = args.seed + utils.get_rank()
+
+    print("You are using seed: ", seed)
+
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
 
+    import os
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
     model, criterion, postprocessors = build_model(args)
+    print(f"Using: {torch.cuda.get_device_name(device)}")
     model.to(device)
 
     model_without_ddp = model
+    # print(model_without_ddp)
     n_parameters = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
     print('number of params:', n_parameters)

@@ -3,3 +3,5 @@ __pycache__
 !my_requirements.txt
 !*log.txt
 /deformable_detr_weights
+/exps
+/models/ops/build
