@@ -63,17 +63,16 @@ cardinality_error_4_unscaled
 
 '''
 model_path = "./exps/resnet_deformable_detr/"
+model_path = "./exps/effi_v2s_deformable_detr/"
 with open(model_path + "log.txt", 'r') as fp:
     num_line = len(fp.readlines())
 
 file = [model_path, "./exps/original"]
 file = [Path(f) for f in file]
 fields = ("loss", "class_error", "loss_bbox", "loss_giou")
-# fields = ("mAP",)
 fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
 fig.savefig("result.png")
 
-# for i, f in enumerate(file):
-#     x = plot_logs(logs=f, fields=(
-#         "loss", "class_error", "loss_bbox"), num_epoch=4)
-#     x[0].savefig("i" + ".png")
+fields = ("mAP",)
+fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
+fig.savefig("result_map.png")

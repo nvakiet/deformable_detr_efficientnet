@@ -62,18 +62,19 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
                         nrows=num_epoch) for p in logs]
     ncols = int(round(math.sqrt(len(fields))))
     nrows = int(math.ceil(len(fields) / ncols))
-    print(ncols, nrows)
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols,
                             figsize=(5 * ncols, 5 * nrows))
     colors = sns.color_palette(n_colors=len(logs))
     for df, color in zip(dfs, colors):
         for j, field in enumerate(fields):
-            print(j, j // ncols, j % ncols)
+            # print(j, j // ncols, j % ncols)
             if field == 'mAP':
                 coco_eval = pd.DataFrame(pd.np.stack(df.test_coco_eval_bbox.dropna().values)[
                     :, 1]).ewm(com=ewm_col).mean()
-                print(axs)
+                # print(axs)
                 axs.plot(coco_eval, c=color)
+                return fig, axs
+
             else:
                 df.interpolate().ewm(com=ewm_col).mean().plot(
                     y=[f'train_{field}', f'test_{field}'],
@@ -84,9 +85,14 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
 
     # edit each ax
     for i, field in enumerate(fields):
-        ax = axs[i // ncols][i % ncols]
+        if len(fields) == 1:
+            ax = axs
+        else:
+            ax = axs[i // ncols][i % ncols]
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.set_title(field)
+        if field in "mAP":
+            return fig, axs
         ax.get_legend().remove()
     # legend
     lines = axs[0][0].get_lines()
