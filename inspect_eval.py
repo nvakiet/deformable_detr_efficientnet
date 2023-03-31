@@ -28,6 +28,6 @@ def load_eval(eval_path):
     return pd.DataFrame.from_dict({c: p for c, p in zip(CLASSES, precision[0, :, :, area, -1].mean(0) * 100)}, orient='index')
 
 
-path = "./exps/resnet_deformable_detr/"
-data = load_eval(path + '/eval/000.pth')
+path = "./exps/effi_v2s_deformable_detr/"
+data = load_eval(path + '/eval/latest.pth')
 print(data.to_string())
