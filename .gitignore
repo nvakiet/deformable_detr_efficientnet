@@ -2,7 +2,7 @@
 *.log
 train_efficientnet.log
 __pycache__
-!my_requirements.txt
+!requirements.txt
 !*log.txt
 /deformable_detr_weights
 /exps
