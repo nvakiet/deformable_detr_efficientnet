@@ -59,5 +59,5 @@ python -u main.py \
     --lr_backbone 1e-5
 ```
 > **Note**
-Use arg **--coco_path "path/to/coco"** to update coco path\
+> Use arg **--coco_path "path/to/coco"** to update coco path\
 **path/to/coco** is coco dataset directory in previous step
