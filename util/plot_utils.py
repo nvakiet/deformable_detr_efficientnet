@@ -105,6 +105,25 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
     fig.subplots_adjust(bottom=1.0 / (5 * nrows))
     return fig, axs
 
+def plot_mAP(logs, ewm_col=0, log_name='log.txt', num_epoch=1):
+    dfs = pd.read_json(Path(logs) / log_name, lines=True, nrows=num_epoch)
+    # ncols = int(round(math.sqrt(len(fields))))
+    # nrows = int(math.ceil(len(fields) / ncols))
+
+    dfs  = dfs["test_coco_eval_bbox"]
+#  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.251
+#  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.444
+#  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.254
+#  Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.109
+#  Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.283
+#  Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.360
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.241
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.403
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.435
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.192
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.483
+#  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.639
+    print(type(dfs[0]))
 
 def plot_precision_recall(files, naming_scheme='iter'):
     if naming_scheme == 'exp_id':

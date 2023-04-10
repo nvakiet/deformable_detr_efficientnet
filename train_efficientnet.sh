@@ -8,4 +8,5 @@ python -u main.py \
     --backbone "efficientnet" \
     --batch_size 2 \
     --lr 1e-4 \
-    --lr_backbone 1e-5
+    --lr_backbone 1e-5 \
+    --resume "exps/effi_v2s_deformable_detr/checkpoint0036.pth"

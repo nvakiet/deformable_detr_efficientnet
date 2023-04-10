@@ -1,4 +1,4 @@
-from util.plot_utils import plot_logs, plot_precision_recall
+from util.plot_utils import plot_logs, plot_precision_recall, plot_mAP
 from pathlib import Path
 import matplotlib.pyplot as plt
 
@@ -67,7 +67,9 @@ model_path = "./exps/effi_v2s_deformable_detr/"
 with open(model_path + "log.txt", 'r') as fp:
     num_line = len(fp.readlines())
 
-file = [model_path, "./exps/original"]
+compare_path = "./exps/resnet_deformable_detr3"
+compare_path = "./exps/original"
+file = [model_path, compare_path]
 file = [Path(f) for f in file]
 fields = ("loss", "class_error", "loss_bbox", "loss_giou")
 fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
@@ -76,3 +78,5 @@ fig.savefig("result.png")
 fields = ("mAP",)
 fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
 fig.savefig("result_map.png")
+
+plot_mAP(logs=model_path, num_epoch=num_line)
