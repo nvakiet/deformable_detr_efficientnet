@@ -16,9 +16,11 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from torch import nn
+from torchsummary import summary
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.models.efficientnet import _efficientnet_conf, _efficientnet, EfficientNet_V2_S_Weights
 from torchvision.models.mobilenet import mobilenet_v3_large
+from torchvision.models.swin_transformer import _swin_transformer, Swin_T_Weights
 from typing import Dict, List
 
 from util.misc import NestedTensor, is_main_process
@@ -175,6 +177,47 @@ class BackboneMobileNetV3(nn.Module):
             out[name] = NestedTensor(x, mask)
         return out
 
+class BackboneSwinTransformer(nn.Module):
+    def __init__(self, train_backbone: bool, return_interm_layers: bool):
+        super().__init__()
+        model = _swin_transformer(
+                    patch_size=[4, 4],
+                    embed_dim=96,
+                    depths=[2, 2, 6, 2],
+                    num_heads=[3, 6, 12, 24],
+                    window_size=[7, 7],
+                    stochastic_depth_prob=0.2,
+                    weights=Swin_T_Weights.DEFAULT,
+                    norm_layer=nn.LayerNorm,
+                    progress=True).to("cuda")
+        embed_dim = 96
+        for name, parameter in model.named_parameters():
+            if not train_backbone:
+                parameter.requires_grad_(False)
+        # Referenced from https://github.com/HDETR/H-Deformable-DETR/blob/master/models/backbone.py
+        if return_interm_layers:
+            self.strides = [8, 16, 32]
+            self.num_channels = [
+                embed_dim * 2,
+                embed_dim * 4,
+                embed_dim * 8,
+            ]
+        else:
+            self.strides = [32]
+            self.num_channels = [embed_dim * 8]
+        # summary(model, (3, 800, 1035), 2)
+        self.body = IntermediateLayerGetter(model,
+                                            return_layers={"avgpool": "3"})
+
+    def forward(self, tensor_list: NestedTensor):
+        xs = self.body(tensor_list.tensors)
+        out: Dict[str, NestedTensor] = {}
+        for name, x in xs.items():
+            m = tensor_list.mask
+            assert m is not None
+            mask = F.interpolate(m[None].float(), size=x.shape[-2:]).to(torch.bool)[0]
+            out[name] = NestedTensor(x, mask)
+        return out
 
 class Joiner(nn.Sequential):
     def __init__(self, backbone, position_embedding):
@@ -218,5 +261,13 @@ def build_mobilenet_backbone(args):
     position_embedding = build_position_encoding(args)
     train_backbone = args.lr_backbone > 0
     backbone = BackboneMobileNetV3(train_backbone)
+    model = Joiner(backbone, position_embedding)
+    return model
+
+def build_swin_transformer_backbone(args):
+    position_embedding = build_position_encoding(args)
+    train_backbone = args.lr_backbone > 0
+    return_interm_layers = args.masks or (args.num_feature_levels > 1)
+    backbone = BackboneSwinTransformer(train_backbone, return_interm_layers)
     model = Joiner(backbone, position_embedding)
     return model
