@@ -1,10 +1,10 @@
 from util.plot_utils import plot_logs, plot_precision_recall, plot_mAP
 from pathlib import Path
 import matplotlib.pyplot as plt
+import os
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
 '''
 ################# UNIQUE ################
 train_lr
@@ -62,21 +62,58 @@ cardinality_error_4_unscaled
 
 
 '''
-model_path = "./exps/resnet_deformable_detr/"
+
+
+def get_file_path(dir_names):
+    result = []
+    for dir in dir_names:
+        path = os.path.join(".", "exps", dir)
+        result.append(Path(path))
+    return result
+
+
 model_path = "./exps/effi_v2s_deformable_detr/"
-with open(model_path + "log.txt", 'r') as fp:
-    num_line = len(fp.readlines())
+model_path = "./exps/mobilenet_v3_deformable_detr/"
+model_path = "./exps/resnet_deformable_detr/"
+# with open(model_path + "log.txt", 'r') as fp:
+#     num_line = len(fp.readlines())
 
 compare_path = "./exps/resnet_deformable_detr3"
 compare_path = "./exps/original"
-file = [model_path, compare_path]
-file = [Path(f) for f in file]
+
+
+list_path = ["original",
+             "mobilenet_v3_deformable_detr",
+             "mobilenet_v3_deformable_detr_b2",
+             "resnet_deformable_detr_lr1e-4",
+             "resnet_deformable_detr_lr5e-5"
+             ]
+
+list_path = ["original",
+             "effi_v2s_deformable_detr",
+             "mobilenet_v3_deformable_detr_b2",
+             "resnet_deformable_detr_lr1e-4_b2"]
+
+list_path = ["original",
+             "resnet_deformable_detr_lr2e-4",
+             "resnet_deformable_detr_lr1e-4",
+             "resnet_deformable_detr_lr5e-5",
+             ]
+
+list_path = ["original",
+             "resnet_deformable_detr_lr1e-4_b2",
+             "mobilenet_v3_deformable_detr_b2",
+             "effi_v2s_deformable_detr"
+             ]
+
+file = get_file_path(list_path)
+num_epoch = 50
+
+
 fields = ("loss", "class_error", "loss_bbox", "loss_giou")
-fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
+fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_epoch)
 fig.savefig("result.png")
 
-fields = ("mAP",)
-fig, _ = plot_logs(logs=file, fields=fields, num_epoch=num_line)
-fig.savefig("result_map.png")
 
-plot_mAP(logs=model_path, num_epoch=num_line)
+fig, _ = plot_mAP(logs=file, num_epoch=num_epoch)
+fig.savefig("result_map.png")

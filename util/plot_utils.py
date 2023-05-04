@@ -18,6 +18,7 @@ from matplotlib.ticker import MaxNLocator
 from pathlib import Path, PurePath
 import math
 import numpy as np
+import json
 
 
 def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col=0, log_name='log.txt', num_epoch=1):
@@ -105,12 +106,33 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
     fig.subplots_adjust(bottom=1.0 / (5 * nrows))
     return fig, axs
 
-def plot_mAP(logs, ewm_col=0, log_name='log.txt', num_epoch=1):
-    dfs = pd.read_json(Path(logs) / log_name, lines=True, nrows=num_epoch)
-    # ncols = int(round(math.sqrt(len(fields))))
-    # nrows = int(math.ceil(len(fields) / ncols))
 
-    dfs  = dfs["test_coco_eval_bbox"]
+def plot_mAP(logs, ewm_col=0, log_name='log.txt', num_epoch=1):
+    columns_full = ["AP", "AP_50", "AP_75", "AP_small", "AP_medium", "AP_large",
+                    "AR_1", "AR_10", "AR_100", "AR_small", "AR_medium", "AR_large"]
+    columns = ["AP", "AP_50", "AP_75", "AP_small", "AP_medium", "AP_large"]
+
+    dfs = [pd.read_json(Path(l) / log_name, lines=True,
+                        nrows=num_epoch) for l in logs]
+
+    dfs = [pd.DataFrame(df['test_coco_eval_bbox'].to_list(),
+                        columns=columns_full) for df in dfs]
+    ncols = 3
+    nrows = 2
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols,
+                            figsize=(5 * ncols, 5 * nrows))
+    colors = sns.color_palette(n_colors=len(logs))
+    for i, ax in enumerate(axs.ravel()):
+        for l, df, color in zip(logs, dfs, colors):
+            ax.plot(df.index, df[columns[i]], color=color, label=l)
+            ax.legend()
+            ax.set_title(columns[i])
+
+    # fig.legend(colors, logs)
+
+    return fig, axs
+
+    print(dfs.head(5))
 #  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.251
 #  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.444
 #  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.254
@@ -123,7 +145,7 @@ def plot_mAP(logs, ewm_col=0, log_name='log.txt', num_epoch=1):
 #  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.192
 #  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.483
 #  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.639
-    print(type(dfs[0]))
+
 
 def plot_precision_recall(files, naming_scheme='iter'):
     if naming_scheme == 'exp_id':

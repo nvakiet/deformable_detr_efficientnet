@@ -4,9 +4,6 @@ set -x
 
 python -u main.py \
     --num_feature_levels 1 \
-    --output_dir "exps/effi_v2s_deformable_detr" \
+    --output_dir "exps/effi_v2s_deformable_detr2" \
     --backbone "efficientnet" \
-    --batch_size 2 \
-    --lr 1e-4 \
-    --lr_backbone 1e-5 \
-    --resume "exps/effi_v2s_deformable_detr/checkpoint0036.pth"
+    --batch_size 2
