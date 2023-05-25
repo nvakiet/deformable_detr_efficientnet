@@ -16,16 +16,15 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from torch import nn
-from torchsummary import summary
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.models.efficientnet import _efficientnet_conf, _efficientnet, EfficientNet_V2_S_Weights
 from torchvision.models.mobilenet import mobilenet_v3_large
-from torchvision.models.swin_transformer import _swin_transformer, Swin_T_Weights
+from mmdet.models.backbones.swin import SwinTransformer
+from mmdet.registry import MODELS
 from typing import Dict, List
-
 from util.misc import NestedTensor, is_main_process
-
 from .position_encoding import build_position_encoding
+import torchinfo
 
 
 class FrozenBatchNorm2d(torch.nn.Module):
@@ -180,21 +179,27 @@ class BackboneMobileNetV3(nn.Module):
 class BackboneSwinTransformer(nn.Module):
     def __init__(self, train_backbone: bool, return_interm_layers: bool):
         super().__init__()
-        model = _swin_transformer(
-                    patch_size=[4, 4],
-                    embed_dim=96,
-                    depths=[2, 2, 6, 2],
-                    num_heads=[3, 6, 12, 24],
-                    window_size=[7, 7],
-                    stochastic_depth_prob=0.2,
-                    weights=Swin_T_Weights.DEFAULT,
-                    norm_layer=nn.LayerNorm,
-                    progress=True).to("cuda")
+        pretrained = "https://github.com/SwinTransformer/storage/releases/download/v1.0.8/swin_tiny_patch4_window7_224_22k.pth"
+        configs = dict(
+            type='SwinTransformer',
+            embed_dims=96,
+            depths=[2, 2, 6, 2],
+            num_heads=[3, 6, 12, 24],
+            window_size=7,
+            mlp_ratio=4,
+            qkv_bias=True,
+            qk_scale=None,
+            drop_rate=0.,
+            attn_drop_rate=0.,
+            drop_path_rate=0.1,
+            patch_norm=True,
+            out_indices=(1, 2, 3) if return_interm_layers else (3,),
+            with_cp=False,
+            convert_weights=True,
+            init_cfg=dict(type='Pretrained', checkpoint=pretrained))
+        self.body: SwinTransformer = MODELS.build(configs)
+        self.body.train(mode=train_backbone)
         embed_dim = 96
-        for name, parameter in model.named_parameters():
-            if not train_backbone:
-                parameter.requires_grad_(False)
-        # Referenced from https://github.com/HDETR/H-Deformable-DETR/blob/master/models/backbone.py
         if return_interm_layers:
             self.strides = [8, 16, 32]
             self.num_channels = [
@@ -205,18 +210,16 @@ class BackboneSwinTransformer(nn.Module):
         else:
             self.strides = [32]
             self.num_channels = [embed_dim * 8]
-        # summary(model, (3, 800, 1035), 2)
-        self.body = IntermediateLayerGetter(model,
-                                            return_layers={"avgpool": "3"})
+        # torchinfo.summary(model, input_size=(1,3,256,256))
 
     def forward(self, tensor_list: NestedTensor):
         xs = self.body(tensor_list.tensors)
         out: Dict[str, NestedTensor] = {}
-        for name, x in xs.items():
+        for i, x in enumerate(xs):
             m = tensor_list.mask
             assert m is not None
             mask = F.interpolate(m[None].float(), size=x.shape[-2:]).to(torch.bool)[0]
-            out[name] = NestedTensor(x, mask)
+            out[f"swin_layer{i}"] = NestedTensor(x, mask)
         return out
 
 class Joiner(nn.Sequential):

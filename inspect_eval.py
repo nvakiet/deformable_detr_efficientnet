@@ -31,4 +31,6 @@ def load_eval(eval_path):
 path = "./exps/resnet_deformable_detr3/"
 path = "./exps/original/"
 data = load_eval(path + '/eval/latest.pth')
-print(data.to_string())
+
+if __name__ == '__main__':
+    print(data.to_string())

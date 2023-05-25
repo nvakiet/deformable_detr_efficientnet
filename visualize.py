@@ -100,12 +100,17 @@ list_path = ["original",
              "resnet_deformable_detr_lr5e-5",
              ]
 
+
+list_path = ["original",
+             "resnet_deformable_detr_lr1e-4_b2"
+             ]
+
 list_path = ["original",
              "resnet_deformable_detr_lr1e-4_b2",
              "mobilenet_v3_deformable_detr_b2",
-             "effi_v2s_deformable_detr"
+             "effi_v2s_deformable_detr",
+             "swin_deformable_detr"
              ]
-
 file = get_file_path(list_path)
 num_epoch = 50
 
